@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"go.yaml.in/yaml/v4"
 )
@@ -14,7 +13,7 @@ type taskFrontmatter struct {
 	Tags         []string `yaml:"tags"`          // can be undefined
 }
 
-func (tf *taskFrontmatter) String() string {
+func (tf taskFrontmatter) String() string {
 	data, err := yaml.Dump(tf, yaml.WithIndent(2))
 	if err != nil {
 		panic(fmt.Sprintf("failed to serialize task frontmatter: %v", err))
@@ -22,13 +21,14 @@ func (tf *taskFrontmatter) String() string {
 	return string(data)
 }
 
+// TODO: consider removing RelatedTasks section to make the body more flexible with its contents
 type taskBody struct {
 	Title        string
 	Description  string
 	RelatedTasks string
 }
 
-func (tb *taskBody) String() string {
+func (tb taskBody) String() string {
 	// TODO: handle empty description and related tasks gracefully
 	return fmt.Sprintf(`# %s
 
@@ -45,36 +45,20 @@ type Task struct {
 
 func NewTask(id, title string) *Task {
 	return &Task{
-		taskFrontmatter: taskFrontmatter{
-			ID:     id,
-			Status: "todo",
-		},
-		taskBody: taskBody{
-			Title: title,
-		},
+		ID:     id,
+		Status: "todo",
+		Title:  title,
 	}
 }
 
-func (t *Task) String() string {
+func (t Task) String() string {
 	return fmt.Sprintf(`%s
 ---
 
 %s`, t.taskFrontmatter.String(), t.taskBody.String())
 }
 
-func (t *Task) Display() {
-	fmt.Printf("# %s\n%s", t.Title, t.taskFrontmatter.String())
-}
-
-func (t *Task) Save(tasksDir string) (string, error) {
-	taskDir := fmt.Sprintf("%s/%s", tasksDir, t.ID)
-
-	if _, err := os.Stat(taskDir); os.IsNotExist(err) {
-		err := CreateTaskFile(t, taskDir)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return taskDir, nil
+func PrintTask(task Task, tasksDir string) {
+	taskDir := fmt.Sprintf("%s/%s", tasksDir, task.ID)
+	fmt.Printf("# %s\npath: %s\n%s", task.Title, taskDir, task.taskFrontmatter.String())
 }

@@ -16,7 +16,9 @@ func main() {
 	command := os.Args[1]
 
 	// TODO: add option to specify tasks directory as optional flag argument
-	tasks, err := NewTaskManager(defaultTasksDir)
+
+	var tm TaskManager
+	tm, err := NewLfsTaskManager(defaultTasksDir)
 	if err != nil {
 		println("Error:", err.Error())
 		return
@@ -24,16 +26,16 @@ func main() {
 
 	switch command {
 	case "add":
-		taskDir, err := addTask(os.Args[2:], tasks)
+		taskDir, err := addTask(os.Args[2:], tm)
 		if err != nil {
 			println("Error:", err.Error())
 			return
 		}
 		fmt.Printf("Task added at: `%s`\n", taskDir)
 	case "list":
-		listTasks(os.Args[2:], tasks)
+		listTasks(os.Args[2:], tm)
 	case "show":
-		showTask(os.Args[2:], tasks)
+		showTask(os.Args[2:], tm)
 	case "help":
 		printHelp()
 	default:
@@ -41,7 +43,7 @@ func main() {
 	}
 }
 
-func addTask(args []string, tasks *TaskManager) (string, error) {
+func addTask(args []string, taskManager TaskManager) (string, error) {
 	// TODO: support specifying task ID and other metadata as named arguments
 	if len(args) < 2 {
 		return "", fmt.Errorf("task ID and title are required")
@@ -49,24 +51,25 @@ func addTask(args []string, tasks *TaskManager) (string, error) {
 
 	id := args[0]
 	title := args[1]
-	return tasks.AddTask(id, title)
+	return taskManager.AddTask(id, title)
 }
 
-func listTasks(args []string, tasks *TaskManager) {
+func listTasks(args []string, taskManager TaskManager) {
 	// TODO: support filtering tasks by status, related tasks, tags
 	// TODO: implement
 	panic("`listTasks` not implemented")
 }
 
-func showTask(args []string, tasks *TaskManager) {
+func showTask(args []string, taskManager TaskManager) {
 	id := args[0]
-	task, err := tasks.GetTaskById(id)
+	task, err := taskManager.GetTaskById(id)
 	if err != nil {
 		println("Error:", err.Error())
 		return
 	}
 
-	task.Display()
+	// TODO: don't hardcode defaultTasksDir in here
+	PrintTask(*task, defaultTasksDir)
 }
 
 func printHelp() {

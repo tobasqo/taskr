@@ -1,65 +1,73 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
-type TaskManager struct {
-	TasksDir string
-	Tasks    *[]Task // consider using map when many tasks
+type TaskManager interface {
+	GetTaskById(taskId string) (*Task, error)
+	AddTask(id, title string) (string, error)
 }
 
-func NewTaskManager(tasksDir string) (*TaskManager, error) {
-	discoveredTasks, err := DiscoverTasks(tasksDir)
+type LfsTaskManager struct {
+	lfsTaskFileManager TaskFileManager
+	tasks              []Task // consider using map when many tasks
+}
+
+func NewLfsTaskManager(tasksDir string) (*LfsTaskManager, error) {
+	taskFileManager := LfsTaskFileManager{
+		tasksDir: tasksDir,
+	}
+	discoveredTasks, err := taskFileManager.DiscoverTasks()
 	if err != nil {
 		return nil, fmt.Errorf("failed to discover tasks: %v", err)
 	}
 
-	tasks := &TaskManager{
-		TasksDir: tasksDir,
-		Tasks:    discoveredTasks,
+	tasks := &LfsTaskManager{
+		lfsTaskFileManager: taskFileManager,
+		tasks:              discoveredTasks,
 	}
 	return tasks, nil
 }
 
-func (tm *TaskManager) GetTaskById(taskId string) (*Task, error) {
-	for _, task := range *tm.Tasks {
-		if task.ID == taskId {
-			return &task, nil
+func (tm *LfsTaskManager) GetTaskById(taskId string) (*Task, error) {
+	for i := range tm.tasks {
+		if tm.tasks[i].ID == taskId {
+			return &tm.tasks[i], nil
 		}
 	}
 	return nil, fmt.Errorf("task with ID `%s` not found", taskId)
 }
 
-func (tm *TaskManager) AddTask(id, title string) (string, error) {
+func (tm *LfsTaskManager) AddTask(id, title string) (string, error) {
 	if title == "" {
 		return "", fmt.Errorf("task title is required")
 	}
 
-	if !TaskIdIsUnique(id, tm) {
-		return "", fmt.Errorf("task `%s` already exists at `%s`", id, tm.TasksDir)
+	if !taskIdIsUnique(*tm, id) {
+		return "", fmt.Errorf("task `%s` already exists at `%s`", id, tm.lfsTaskFileManager.Location())
 	}
 
 	task := NewTask(id, title)
-	taskDir, err := task.Save(tm.TasksDir)
+	taskFilePath, err := tm.lfsTaskFileManager.Save(*task)
 	if err != nil {
 		return "", fmt.Errorf("failed to save task: %v", err)
 	}
 
-	*tm.Tasks = append(*tm.Tasks, *task)
+	tm.tasks = append(tm.tasks, *task)
 
-	return taskDir, nil
+	return taskFilePath, nil
 }
 
-func (tm *TaskManager) TaskExists(taskId string) bool {
-	for _, task := range *tm.Tasks {
-		if task.ID == taskId {
+func taskIdIsUnique(tm LfsTaskManager, taskId string) bool {
+	return !taskExists(tm, taskId)
+}
+
+func taskExists(tm LfsTaskManager, taskId string) bool {
+	for i := range tm.tasks {
+		if tm.tasks[i].ID == taskId {
 			return true
 		}
 	}
 	return false
-}
-
-func (tm *TaskManager) CheckValidRelatedTasks(relatedTasks *[]string) error {
-	// TODO: implement
-	// subtract sets of relatedTasks and tasks.IDs, if any remain, return error
-	panic("`checkValidRelatedTasks` not implemented")
 }
