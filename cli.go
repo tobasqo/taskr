@@ -1,57 +1,106 @@
 package main
 
 import (
+	"errors"
+	"flag"
 	"fmt"
 	"os"
 )
 
 const defaultTasksDir = "./.tasks"
 
+var commands = []struct {
+	name        string
+	description string
+}{
+	{name: "add", description: "Add a new task"},
+	{name: "list", description: "List all tasks"},
+	{name: "show", description: "Show a specific task"},
+	{name: "help", description: "Print help message"},
+}
+
 func main() {
+	if err := run(); err != nil && !errors.Is(err, flag.ErrHelp) {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
+	globalFlags := newRootFlagSet()
+	tasksDir := globalFlags.String("tasks-dir", defaultTasksDir, "directory containing task files")
+
 	if len(os.Args) < 2 {
-		printHelp()
-		return
+		globalFlags.Usage()
+		return nil
 	}
 
-	command := os.Args[1]
+	if err := globalFlags.Parse(os.Args[1:]); err != nil {
+		return err
+	}
 
-	// TODO: add option to specify tasks directory as optional flag argument
+	args := globalFlags.Args()
+	if len(args) == 0 {
+		globalFlags.Usage()
+		return nil
+	}
+	command := args[0]
 
 	var tm TaskManager
-	tm, err := NewLfsTaskManager(defaultTasksDir)
+	tm, err := NewLfsTaskManager(*tasksDir)
 	if err != nil {
-		println("Error:", err.Error())
-		return
+		return err
 	}
 
 	switch command {
 	case "add":
-		taskDir, err := addTask(os.Args[2:], tm)
+		taskFilePath, err := addTask(args[1:], tm)
 		if err != nil {
-			println("Error:", err.Error())
-			return
+			return err
 		}
-		fmt.Printf("Task added at: `%s`\n", taskDir)
+		fmt.Printf("Task added at: `%s`\n", taskFilePath)
+
 	case "list":
-		listTasks(os.Args[2:], tm)
+		listTasks(args[1:], tm)
+
 	case "show":
-		showTask(os.Args[2:], tm)
+		if err := showTask(args[1:], tm, *tasksDir); err != nil {
+			return err
+		}
+
 	case "help":
-		printHelp()
+		globalFlags.Usage()
+
 	default:
-		printHelp()
+		globalFlags.Usage()
 	}
+
+	return nil
 }
 
 func addTask(args []string, taskManager TaskManager) (string, error) {
-	// TODO: support specifying task ID and other metadata as named arguments
-	if len(args) < 2 {
-		return "", fmt.Errorf("task ID and title are required")
+	flags := newFlagSet("add")
+
+	id := flags.String("id", "", "task ID (required)")
+	title := flags.String("title", "", "task title (required)")
+
+	if err := flags.Parse(args); err != nil {
+		return "", err
 	}
 
-	id := args[0]
-	title := args[1]
-	return taskManager.AddTask(id, title)
+	if flags.NArg() != 0 {
+		return "", fmt.Errorf("unexpected positional arguments: %v", flags.Args())
+	}
+
+	if *id == "" {
+		return "", fmt.Errorf("flag -id is required")
+	}
+
+	if *title == "" {
+		return "", fmt.Errorf("flag -title is required")
+	}
+
+	return taskManager.AddTask(*id, *title)
 }
 
 func listTasks(args []string, taskManager TaskManager) {
@@ -60,27 +109,56 @@ func listTasks(args []string, taskManager TaskManager) {
 	panic("`listTasks` not implemented")
 }
 
-func showTask(args []string, taskManager TaskManager) {
-	id := args[0]
-	task, err := taskManager.GetTaskById(id)
-	if err != nil {
-		println("Error:", err.Error())
-		return
+func showTask(args []string, taskManager TaskManager, tasksDir string) error {
+	flags := newFlagSet("show")
+
+	id := flags.String("id", "", "task ID (required)")
+
+	if err := flags.Parse(args); err != nil {
+		return err
 	}
 
-	// TODO: don't hardcode defaultTasksDir in here
-	PrintTask(*task, defaultTasksDir)
+	if flags.NArg() != 0 {
+		return fmt.Errorf("unexpected positional arguments: %s", flags.Args())
+	}
+
+	if *id == "" {
+		return fmt.Errorf("flag -id is required")
+	}
+
+	task, err := taskManager.GetTaskById(*id)
+	if err != nil {
+		return err
+	}
+
+	PrintTask(*task, tasksDir)
+	return nil
 }
 
-func printHelp() {
-	// TODO: add details for each command and its options
-	println(`
-Usage:
-  taskr <command> [options]
+func newFlagSet(name string) *flag.FlagSet {
+	flags := flag.NewFlagSet(name, flag.ContinueOnError)
 
-Commands:
-  add    Add a new task
-  list   List all tasks
-  show   Show a specific task
-`)
+	flags.Usage = func() {
+		fmt.Fprintf(flags.Output(), "Usage:\n  taskr %s [options]\n\nOptions:\n", name)
+		flags.PrintDefaults()
+	}
+
+	return flags
+}
+
+func newRootFlagSet() *flag.FlagSet {
+	flags := flag.NewFlagSet("taskr", flag.ContinueOnError)
+	flags.Usage = func() {
+		fmt.Fprintln(flags.Output(), "Usage:")
+		fmt.Fprintln(flags.Output(), "  taskr [--tasks-dir <dir>] <command> [options]")
+
+		fmt.Fprintln(flags.Output(), "\nOptions:")
+		flags.PrintDefaults()
+
+		fmt.Fprintln(flags.Output(), "\nCommands:")
+		for _, command := range commands {
+			fmt.Fprintf(flags.Output(), "  %-6s %s\n", command.name, command.description)
+		}
+	}
+	return flags
 }

@@ -40,10 +40,6 @@ func (tm *LfsTaskManager) GetTaskById(taskId string) (*Task, error) {
 }
 
 func (tm *LfsTaskManager) AddTask(id, title string) (string, error) {
-	if title == "" {
-		return "", fmt.Errorf("task title is required")
-	}
-
 	if !taskIdIsUnique(*tm, id) {
 		return "", fmt.Errorf("task `%s` already exists at `%s`", id, tm.lfsTaskFileManager.Location())
 	}
