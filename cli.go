@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -35,7 +37,7 @@ func run() error {
 		return nil
 	}
 
-	if err := globalFlags.Parse(os.Args[1:]); err != nil {
+	if err := parseFlags(globalFlags, os.Args[1:]); err != nil {
 		return err
 	}
 
@@ -84,20 +86,20 @@ func addTask(args []string, taskManager TaskManager) (string, error) {
 	id := flags.String("id", "", "task ID (required)")
 	title := flags.String("title", "", "task title (required)")
 
-	if err := flags.Parse(args); err != nil {
+	if err := parseFlags(flags, args); err != nil {
 		return "", err
 	}
 
 	if flags.NArg() != 0 {
-		return "", fmt.Errorf("unexpected positional arguments: %v", flags.Args())
+		return "", flagError(flags, fmt.Errorf("unexpected positional arguments: %v", flags.Args()))
 	}
 
 	if *id == "" {
-		return "", fmt.Errorf("flag -id is required")
+		return "", flagError(flags, fmt.Errorf("flag -id is required"))
 	}
 
 	if *title == "" {
-		return "", fmt.Errorf("flag -title is required")
+		return "", flagError(flags, fmt.Errorf("flag -title is required"))
 	}
 
 	return taskManager.AddTask(*id, *title)
@@ -114,16 +116,16 @@ func showTask(args []string, taskManager TaskManager, tasksDir string) error {
 
 	id := flags.String("id", "", "task ID (required)")
 
-	if err := flags.Parse(args); err != nil {
+	if err := parseFlags(flags, args); err != nil {
 		return err
 	}
 
 	if flags.NArg() != 0 {
-		return fmt.Errorf("unexpected positional arguments: %s", flags.Args())
+		return flagError(flags, fmt.Errorf("unexpected positional arguments: %s", flags.Args()))
 	}
 
 	if *id == "" {
-		return fmt.Errorf("flag -id is required")
+		return flagError(flags, fmt.Errorf("flag -id is required"))
 	}
 
 	task, err := taskManager.GetTaskById(*id)
@@ -146,8 +148,37 @@ func newFlagSet(name string) *flag.FlagSet {
 	return flags
 }
 
+func parseFlags(flags *flag.FlagSet, args []string) error {
+	output := flags.Output()
+	flags.SetOutput(io.Discard)
+
+	err := flags.Parse(args)
+	flags.SetOutput(output)
+	if errors.Is(err, flag.ErrHelp) {
+		flags.Usage()
+		return err
+	}
+
+	if err != nil {
+		return flagError(flags, err)
+	}
+
+	return nil
+}
+
+func flagError(flags *flag.FlagSet, err error) error {
+	var usage bytes.Buffer
+
+	output := flags.Output()
+	flags.SetOutput(&usage)
+	flags.Usage()
+	flags.SetOutput(output)
+	return fmt.Errorf("%w\n\n%s", err, usage.String())
+}
+
 func newRootFlagSet() *flag.FlagSet {
 	flags := flag.NewFlagSet("taskr", flag.ContinueOnError)
+
 	flags.Usage = func() {
 		fmt.Fprintln(flags.Output(), "Usage:")
 		fmt.Fprintln(flags.Output(), "  taskr [--tasks-dir <dir>] <command> [options]")
