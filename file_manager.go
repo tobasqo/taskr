@@ -77,10 +77,17 @@ func (tfm LfsTaskFileManager) DiscoverTasks() ([]Task, error) {
 	for _, entry := range dirEntries {
 		if entry.IsDir() {
 			taskPath := fmt.Sprintf("%s/%s/TASK.md", tfm.tasksDir, entry.Name())
+
+			if _, err := os.Stat(taskPath); os.IsNotExist(err) {
+				// NOTE: should we print something? probably only if `verbose` or something
+				continue
+			}
+
 			task, err := tfm.LoadTask(taskPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load task from `%s`: %v", taskPath, err)
 			}
+
 			tasks = append(tasks, *task)
 		}
 	}
