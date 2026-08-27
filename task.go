@@ -21,21 +21,17 @@ func (tf taskFrontmatter) String() string {
 	return string(data)
 }
 
-// TODO: consider removing RelatedTasks section to make the body more flexible with its contents
 type taskBody struct {
-	Title        string
-	Description  string
-	RelatedTasks string
+	Title       string
+	Description string
 }
 
 func (tb taskBody) String() string {
-	// TODO: handle empty description and related tasks gracefully
+	// TODO: handle empty description gracefully
 	return fmt.Sprintf(`# %s
 
 %s
-
-## Related Tasks
-%s`, tb.Title, tb.Description, tb.RelatedTasks)
+`, tb.Title, tb.Description)
 }
 
 type Task struct {

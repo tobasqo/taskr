@@ -50,17 +50,9 @@ func parseTaskFrontmatter(frontmatter string) (*taskFrontmatter, error) {
 func parseTaskBody(body string) (*taskBody, error) {
 	body = strings.TrimSpace(body)
 
-	bodyParts := strings.SplitN(body, "## Related Tasks", 2)
-	if len(bodyParts) != 2 {
-		return nil, fmt.Errorf("invalid task body format: missing '## Related Tasks' section")
-	}
-
-	titleAndDescription := strings.TrimSpace(bodyParts[0])
-	relatedTasks := strings.TrimSpace(bodyParts[1])
-
-	titleLines := strings.SplitN(titleAndDescription, "\n", 2)
+	titleLines := strings.SplitN(body, "\n", 2)
 	if len(titleLines) < 1 {
-		return nil, fmt.Errorf("invalid task body format: missing title or description")
+		return nil, fmt.Errorf("invalid task body format: missing title")
 	}
 
 	var tb taskBody
@@ -68,7 +60,6 @@ func parseTaskBody(body string) (*taskBody, error) {
 	if len(titleLines) > 1 {
 		tb.Description = strings.TrimSpace(titleLines[1])
 	}
-	tb.RelatedTasks = relatedTasks
 
 	return &tb, nil
 }
