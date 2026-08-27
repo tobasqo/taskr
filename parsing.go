@@ -8,7 +8,13 @@ import (
 )
 
 func ParseTaskFromString(taskContent string) (*Task, error) {
-	parts := strings.SplitN(taskContent, "---", 2)
+	const delimiter = "---"
+
+	if !strings.HasPrefix(taskContent, delimiter) {
+		return nil, fmt.Errorf("invalid task format: missing frontmatter or body")
+	}
+
+	parts := strings.SplitN(strings.TrimPrefix(taskContent, delimiter), delimiter, 2)
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("invalid task format: missing frontmatter or body")
 	}
@@ -34,14 +40,23 @@ func ParseTaskFromString(taskContent string) (*Task, error) {
 }
 
 func parseTaskFrontmatter(frontmatter string) (*taskFrontmatter, error) {
-	// is the trim even needed?
 	frontmatter = strings.Trim(frontmatter, "\r\n ")
 
-	var tf taskFrontmatter
+	if frontmatter == "" {
+		return nil, fmt.Errorf("frontmatter is empty")
+	}
 
-	err := yaml.Unmarshal([]byte(frontmatter), &tf)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse frontmatter: %v", err)
+	var tf taskFrontmatter
+	if err := yaml.Unmarshal([]byte(frontmatter), &tf); err != nil {
+		return nil, fmt.Errorf("invalid YAML: %v", err)
+	}
+
+	if strings.TrimSpace(tf.ID) == "" {
+		return nil, fmt.Errorf("frontmatter field `id` is required")
+	}
+
+	if strings.TrimSpace(tf.Status) == "" {
+		return nil, fmt.Errorf("frontmatter field `status` is required")
 	}
 
 	return &tf, nil
