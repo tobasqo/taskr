@@ -27,11 +27,13 @@ type taskBody struct {
 }
 
 func (tb taskBody) String() string {
-	// TODO: handle empty description gracefully
-	return fmt.Sprintf(`# %s
+	str := fmt.Sprintf("# %s\n", tb.Title)
 
-%s
-`, tb.Title, tb.Description)
+	if tb.Description == "" {
+		return str
+	}
+
+	return fmt.Sprintf("%s\n%s", str, tb.Description)
 }
 
 type Task struct {
@@ -48,8 +50,8 @@ func NewTask(id, title string) *Task {
 }
 
 func (t Task) String() string {
-	return fmt.Sprintf(`%s
----
+	return fmt.Sprintf(`---
+%s---
 
 %s`, t.taskFrontmatter.String(), t.taskBody.String())
 }
