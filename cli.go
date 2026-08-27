@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 const defaultTasksDir = "./.tasks"
@@ -88,7 +89,7 @@ func run() error {
 		fmt.Printf("Task added at: `%s`\n", taskFilePath)
 
 	case "list":
-		listTasks(args[1:], taskManager)
+		listTasks(args[1:], taskManager, *tasksDir)
 
 	case "show":
 		if err := showTask(args[1:], taskManager, *tasksDir); err != nil {
@@ -124,10 +125,23 @@ func addTask(args []string, taskManager TaskManager) (string, error) {
 	return taskManager.AddTask(*id, *title)
 }
 
-func listTasks(args []string, taskManager TaskManager) {
+// TODO: `tasksDir` param feels odd to be passed in here
+func listTasks(args []string, taskManager TaskManager, tasksDir string) {
 	// TODO: support filtering tasks by status, related tasks, tags
-	// TODO: implement
-	panic("`listTasks` not implemented")
+	_ = args
+
+	tasks := taskManager.Tasks()
+
+	if len(tasks) == 0 {
+		fmt.Printf("No tasks at `%s`\n", tasksDir)
+		return
+	}
+
+	for i := range tasks {
+		println(strings.Repeat("=", 80))
+		PrintTask(tasks[i], tasksDir)
+	}
+	println(strings.Repeat("=", 80))
 }
 
 func showTask(args []string, taskManager TaskManager, tasksDir string) error {

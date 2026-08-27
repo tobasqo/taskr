@@ -7,6 +7,7 @@ import (
 type TaskManager interface {
 	GetTaskById(taskId string) (*Task, error)
 	AddTask(id, title string) (string, error)
+	Tasks() []Task
 }
 
 type LfsTaskManager struct {
@@ -53,6 +54,10 @@ func (tm *LfsTaskManager) AddTask(id, title string) (string, error) {
 	tm.tasks = append(tm.tasks, *task)
 
 	return taskFilePath, nil
+}
+
+func (tm *LfsTaskManager) Tasks() []Task {
+	return tm.tasks
 }
 
 func taskIdIsUnique(tm LfsTaskManager, taskId string) bool {
