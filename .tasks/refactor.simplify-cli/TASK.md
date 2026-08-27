@@ -1,12 +1,8 @@
 id: refactor.simplify-cli
-status: todo
+status: done
 related_tasks: []
 tags: []
 
 ---
 
 # Simplify the current mess with args parsing
-
-
-
-## Related Tasks
