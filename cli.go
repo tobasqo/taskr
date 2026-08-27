@@ -94,12 +94,6 @@ func run() error {
 		if err := showTask(args[1:], taskManager, *tasksDir); err != nil {
 			return err
 		}
-
-	case "help":
-		globalFlags.Usage()
-
-	default:
-		globalFlags.Usage()
 	}
 
 	return nil
