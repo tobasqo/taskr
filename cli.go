@@ -125,16 +125,59 @@ func addTask(args []string, taskManager TaskManager) (string, error) {
 	return taskManager.AddTask(*id, *title)
 }
 
-// TODO: `tasksDir` param feels odd to be passed in here
-func listTasks(args []string, taskManager TaskManager, tasksDir string) {
-	// TODO: support filtering tasks by status, related tasks, tags
-	_ = args
-
+func listTasks(args []string, taskManager TaskManager, tasksDir string) error {
 	tasks := taskManager.Tasks()
 
 	if len(tasks) == 0 {
 		fmt.Printf("No tasks at `%s`\n", tasksDir)
-		return
+		return nil
+	}
+
+	flags := newFlagSet("list")
+
+	status := flags.String("status", "", "task status (optional)")
+	// TODO: support filtering tasks by multiple related tasks - should it be OR or AND?
+	relatedTask := flags.String("related-task", "", "related task (optional)")
+	// TODO: support filtering tasks by multiple tags - should it be OR or AND?
+	tag := flags.String("tag", "", "task tag (optional)")
+
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+
+	if flags.NArg() != 0 {
+		return &unexpectedPositionalArgsError{flags.Args(), flags}
+	}
+
+	if *status != "" {
+		tasks = filterTasks(tasks, func(task Task) bool { return task.Status == *status })
+	}
+
+	if *relatedTask != "" {
+		tasks = filterTasks(tasks, func(task Task) bool {
+			for _, taskRelatedTask := range task.RelatedTasks {
+				if taskRelatedTask == *relatedTask {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
+	if *tag != "" {
+		tasks = filterTasks(tasks, func(task Task) bool {
+			for _, taskTag := range task.Tags {
+				if taskTag == *tag {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
+	if len(tasks) == 0 {
+		fmt.Printf("No tasks for given query at `%s`\n", tasksDir)
+		return nil
 	}
 
 	for i := range tasks {
@@ -142,6 +185,20 @@ func listTasks(args []string, taskManager TaskManager, tasksDir string) {
 		PrintTask(tasks[i], tasksDir)
 	}
 	println(strings.Repeat("=", 80))
+
+	return nil
+}
+
+func filterTasks(tasks []Task, predicate func(Task) bool) []Task {
+	result := make([]Task, 0, len(tasks))
+
+	for _, task := range tasks {
+		if predicate(task) {
+			result = append(result, task)
+		}
+	}
+
+	return result
 }
 
 func showTask(args []string, taskManager TaskManager, tasksDir string) error {
