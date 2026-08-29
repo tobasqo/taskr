@@ -24,8 +24,7 @@ func (tfm LfsTaskFileManager) GetTaskDir(taskId string) string {
 func (tfm LfsTaskFileManager) Save(task Task) (string, error) {
 	taskDir := tfm.GetTaskDir(task.ID)
 
-	err := tfm.ensureTaskDirExists(taskDir)
-	if err != nil {
+	if err := tfm.ensureTaskDirExists(taskDir); err != nil {
 		return "", err
 	}
 
@@ -37,8 +36,7 @@ func (tfm LfsTaskFileManager) Save(task Task) (string, error) {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(task.String())
-	if err != nil {
+	if _, err = file.WriteString(task.String()); err != nil {
 		return "", fmt.Errorf("failed to write to task file: %v", err)
 	}
 
@@ -100,8 +98,7 @@ func (tfm LfsTaskFileManager) Location() string {
 }
 
 func (tfm LfsTaskFileManager) ensureTaskDirExists(taskDir string) error {
-	err := os.MkdirAll(taskDir, os.ModePerm)
-	if err != nil {
+	if err := os.MkdirAll(taskDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create task directory: %v", err)
 	}
 

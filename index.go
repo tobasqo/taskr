@@ -1,0 +1,102 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"slices"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+type TaskIndexEntry struct {
+	TaskID   string `json:"id"`
+	TaskPath string `json:"path"`
+}
+
+// TODO: define interface
+type TaskIndex struct {
+	CurrentTaskID string           `json:"current_task"` // could be undefined
+	Entries       []TaskIndexEntry `json:"tasks"`
+}
+
+func (idx TaskIndex) String() string {
+	indexData, err := json.Marshal(
+		idx,
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("\t"),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("failed to serialize task index: %v", err))
+	}
+
+	return string(indexData)
+}
+
+func LoadIndex(tasksDir string) (*TaskIndex, error) {
+	indexFilePath := getIndexFilePath(tasksDir)
+
+	if _, err := os.Stat(indexFilePath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("task index file `%s` does not exist", indexFilePath)
+	}
+
+	indexData, err := os.ReadFile(indexFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("could not read `%s`: %v", indexFilePath, err)
+	}
+
+	var index TaskIndex
+	if err := json.Unmarshal(indexData, &index); err != nil {
+		return nil, fmt.Errorf("invalid json")
+	}
+
+	return &index, nil
+}
+
+func (idx *TaskIndex) AddTask(task Task, taskDir string) {
+	idx.Entries = append(idx.Entries, TaskIndexEntry{task.ID, taskDir})
+}
+
+func (idx TaskIndex) SaveIndex(tasksDir string) error {
+	indexFilePath := getIndexFilePath(tasksDir)
+
+	if err := os.MkdirAll(tasksDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create tasks directory: %v", err)
+	}
+
+	file, err := os.OpenFile(indexFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create index file: %v", err)
+	}
+	defer file.Close()
+
+	if _, err := file.WriteString(idx.String()); err != nil {
+		return fmt.Errorf("failed to write to index file: %v", err)
+	}
+
+	return nil
+}
+
+func (idx TaskIndex) Validate(tasks map[string]Task) error {
+	indexEntriesSeq := SliceToSeq(idx.Entries)
+	indexIDs := NewSetFrom(indexEntriesSeq, func(entry TaskIndexEntry) string { return entry.TaskID })
+
+	tasksSeq := MapKeysToSeq(tasks)
+	tasksIDs := NewSetFrom(tasksSeq, func(taskID string) string { return taskID })
+
+	absentTasks := indexIDs.Difference(*tasksIDs)
+	if absentTasks.Len() > 0 {
+		return fmt.Errorf("task(s) %v present on index, but failed to be discovered", slices.Collect(absentTasks.Items()))
+	}
+
+	absentIndexEntries := tasksIDs.Difference(*indexIDs)
+	if absentIndexEntries.Len() > 0 {
+		return fmt.Errorf("task(s) %v discovered, but absent in index", slices.Collect(absentIndexEntries.Items()))
+	}
+
+	return nil
+}
+
+func getIndexFilePath(tasksDir string) string {
+	return fmt.Sprintf("%s/index.json", tasksDir)
+}

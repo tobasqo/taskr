@@ -5,14 +5,15 @@ import (
 )
 
 type TaskManager interface {
-	GetTaskById(taskId string) (*Task, error)
+	GetTaskById(taskId string) (Task, error)
 	AddTask(id, title string) (string, error)
 	Tasks() []Task
 }
 
 type LfsTaskManager struct {
 	lfsTaskFileManager TaskFileManager
-	tasks              []Task // consider using map when many tasks
+	tasks              map[string]Task
+	index              TaskIndex
 }
 
 func NewLfsTaskManager(tasksDir string) (*LfsTaskManager, error) {
@@ -24,20 +25,37 @@ func NewLfsTaskManager(tasksDir string) (*LfsTaskManager, error) {
 		return nil, fmt.Errorf("failed to discover tasks: %v", err)
 	}
 
-	tasks := &LfsTaskManager{
-		lfsTaskFileManager: taskFileManager,
-		tasks:              discoveredTasks,
+	tasks := make(map[string]Task, len(discoveredTasks))
+	for i := range discoveredTasks {
+		tasks[discoveredTasks[i].ID] = discoveredTasks[i]
 	}
-	return tasks, nil
+
+	index, err := LoadIndex(tasksDir)
+	if err != nil {
+		return nil, fmt.Errorf("could not load index: %v", err)
+	}
+
+	if err := index.Validate(tasks); err != nil {
+		return nil, fmt.Errorf("error validating index: %v", err)
+	}
+
+	taskManager := &LfsTaskManager{
+		lfsTaskFileManager: taskFileManager,
+		tasks:              tasks,
+		index:              *index,
+	}
+	return taskManager, nil
 }
 
-func (tm *LfsTaskManager) GetTaskById(taskId string) (*Task, error) {
-	for i := range tm.tasks {
-		if tm.tasks[i].ID == taskId {
-			return &tm.tasks[i], nil
-		}
+func (tm LfsTaskManager) GetTaskById(taskID string) (Task, error) {
+	// probably somehow return *Task if possible?
+	// or just add `UpdateTask` method when needed
+	task, exists := tm.tasks[taskID]
+	if !exists {
+		return Task{}, fmt.Errorf("task with ID `%s` not found", taskID)
 	}
-	return nil, fmt.Errorf("task with ID `%s` not found", taskId)
+
+	return task, nil
 }
 
 func (tm *LfsTaskManager) AddTask(id, title string) (string, error) {
@@ -51,13 +69,18 @@ func (tm *LfsTaskManager) AddTask(id, title string) (string, error) {
 		return "", fmt.Errorf("failed to save task: %v", err)
 	}
 
-	tm.tasks = append(tm.tasks, *task)
+	tm.tasks[id] = *task
+
+	tm.index.AddTask(*task, tm.lfsTaskFileManager.GetTaskDir(id))
+	tm.index.Validate(tm.tasks)
+	// not optimal to save index every time we add a task
+	tm.index.SaveIndex(tm.lfsTaskFileManager.Location())
 
 	return taskFilePath, nil
 }
 
 func (tm *LfsTaskManager) Tasks() []Task {
-	return tm.tasks
+	return SortTasksByIndex(tm.tasks, tm.index)
 }
 
 func taskIdIsUnique(tm LfsTaskManager, taskId string) bool {

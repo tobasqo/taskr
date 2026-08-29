@@ -1,0 +1,49 @@
+{
+	"current_task": "",
+	"tasks": [
+		{
+			"id": "chore.main",
+			"path": "./.tasks/chore.main"
+		},
+		{
+			"id": "chore.makefile",
+			"path": "./.tasks/chore.makefile"
+		},
+		{
+			"id": "chore.packages",
+			"path": "./.tasks/chore.packages"
+		},
+		{
+			"id": "chore.repo",
+			"path": "./.tasks/chore.repo"
+		},
+		{
+			"id": "feat.index",
+			"path": "./.tasks/feat.index"
+		},
+		{
+			"id": "feat.init-cmd",
+			"path": "./.tasks/feat.init-cmd"
+		},
+		{
+			"id": "refactor.paths",
+			"path": "./.tasks/refactor.paths"
+		},
+		{
+			"id": "refactor.simplify-cli",
+			"path": "./.tasks/refactor.simplify-cli"
+		},
+		{
+			"id": "term.newlines",
+			"path": "./.tasks/term.newlines"
+		},
+		{
+			"id": "web.server",
+			"path": "./.tasks/web.server"
+		},
+		{
+			"id": "feat.remove-task",
+			"path": "./.tasks/feat.remove-task"
+		}
+	]
+}

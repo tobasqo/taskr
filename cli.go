@@ -42,7 +42,7 @@ func main() {
 	if err := run(); err != nil && !errors.Is(err, flag.ErrHelp) {
 		fmt.Fprintln(os.Stderr, err)
 
-		// TODO: this looks weird
+		// this looks weird
 		if missingRequiredFlagErr, ok := errors.AsType[*missingRequiredFlagError](err); ok {
 			missingRequiredFlagErr.FlagSet.Usage()
 		} else if unexpectedPositionalArgsErr, ok := errors.AsType[*unexpectedPositionalArgsError](err); ok {
@@ -223,7 +223,7 @@ func showTask(args []string, taskManager TaskManager, tasksDir string) error {
 		return err
 	}
 
-	PrintTask(*task, tasksDir)
+	PrintTask(task, tasksDir)
 	return nil
 }
 
