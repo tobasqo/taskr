@@ -8,13 +8,12 @@ func ValidateRelatedTasks(tasks []Task, relatedTasks []string) error {
 }
 
 func SortTasksByIndex(tasks map[string]Task, index TaskIndex) []Task {
-	sortedTasks := make([]Task, len(tasks))
+	sortedTasks := make([]Task, 0, len(tasks))
 
 	for i := range index.Entries {
-		for taskID := range tasks {
-			if index.Entries[i].TaskID == taskID {
-				sortedTasks = append(sortedTasks, tasks[taskID])
-			}
+		taskID := index.Entries[i].TaskID
+		if task, exists := tasks[taskID]; exists {
+			sortedTasks = append(sortedTasks, task)
 		}
 	}
 

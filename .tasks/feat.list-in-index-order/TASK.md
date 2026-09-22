@@ -1,6 +1,6 @@
 ---
 id: feat.list-in-index-order
-status: todo
+status: done
 related_tasks: []
 tags: []
 ---
