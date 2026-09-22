@@ -52,6 +52,10 @@
 		{
 			"id": "feat.reorder-tasks",
 			"path": "./.tasks/feat.reorder-tasks"
+		},
+		{
+			"id": "feat.index-fullpath",
+			"path": "./.tasks/feat.index-fullpath"
 		}
 	]
 }
