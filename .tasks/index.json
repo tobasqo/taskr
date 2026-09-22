@@ -60,6 +60,10 @@
 		{
 			"id": "feat.list-in-index-order",
 			"path": "./.tasks/feat.list-in-index-order"
+		},
+		{
+			"id": "feat.validate-related-tasks",
+			"path": "./.tasks/feat.validate-related-tasks"
 		}
 	]
 }
