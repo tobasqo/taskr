@@ -44,6 +44,10 @@
 		{
 			"id": "feat.remove-task",
 			"path": "./.tasks/feat.remove-task"
+		},
+		{
+			"id": "refactor.remove-current_task",
+			"path": "./.tasks/refactor.remove-current_task"
 		}
 	]
 }
