@@ -60,13 +60,9 @@ func (idx *TaskIndex) AddTask(task Task, taskDir string) {
 func (idx TaskIndex) SaveIndex(tasksDir string) error {
 	indexFilePath := getIndexFilePath(tasksDir)
 
-	if err := os.MkdirAll(tasksDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create tasks directory: %v", err)
-	}
-
 	file, err := os.OpenFile(indexFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to create index file: %v", err)
+		return fmt.Errorf("failed to open index file: %v", err)
 	}
 	defer file.Close()
 

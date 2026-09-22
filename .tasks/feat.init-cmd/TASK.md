@@ -1,6 +1,6 @@
 ---
 id: feat.init-cmd
-status: todo
+status: done
 related_tasks: []
 tags: []
 ---

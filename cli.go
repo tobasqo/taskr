@@ -14,6 +14,7 @@ var commands = []struct {
 	name        string
 	description string
 }{
+	{name: "init", description: "Initialize tasks directory"},
 	{name: "add", description: "Add a new task"},
 	{name: "list", description: "List all tasks"},
 	{name: "show", description: "Show a specific task"},
@@ -73,31 +74,88 @@ func run() error {
 	}
 
 	command := args[0]
-
-	var taskManager TaskManager
-	taskManager, err := NewLfsTaskManager(*tasksDir)
-	if err != nil {
-		return err
-	}
-
-	switch command {
-	case "add":
-		taskFilePath, err := addTask(args[1:], taskManager)
+	if command == "init" {
+		tasksDir, err := initTasksDirectory(args[1:])
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Task added at: `%s`\n", taskFilePath)
-
-	case "list":
-		listTasks(args[1:], taskManager, *tasksDir)
-
-	case "show":
-		if err := showTask(args[1:], taskManager, *tasksDir); err != nil {
+		fmt.Printf("Initialized tasks directory at: `%s`\n", tasksDir)
+	} else {
+		var taskManager TaskManager
+		taskManager, err := NewLfsTaskManager(*tasksDir)
+		if err != nil {
 			return err
+		}
+
+		switch command {
+		case "add":
+			taskFilePath, err := addTask(args[1:], taskManager)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Task added at: `%s`\n", taskFilePath)
+
+		case "list":
+			if err := listTasks(args[1:], taskManager, *tasksDir); err != nil {
+				return err
+			}
+
+		case "show":
+			if err := showTask(args[1:], taskManager, *tasksDir); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+func initTasksDirectory(args []string) (string, error) {
+	flags := newFlagSet("init")
+
+	dstDir := flags.String("dir", ".", "Destination directory to initialize")
+
+	if err := flags.Parse(args); err != nil {
+		return "", err
+	}
+
+	if flags.NArg() != 0 && *dstDir != "" {
+		*dstDir = args[0]
+	}
+
+	dirStat, err := os.Stat(*dstDir)
+	if err != nil {
+		return "", fmt.Errorf("directory `%s` does not exist", *dstDir)
+	}
+
+	if !dirStat.IsDir() {
+		return "", fmt.Errorf("provided path `%s` is not a directory", *dstDir)
+	}
+
+	tasksDir := fmt.Sprintf("%s/.tasks", *dstDir)
+	if _, err := os.Stat(tasksDir); err == nil {
+		dirEntries, err := os.ReadDir(tasksDir)
+		if err != nil {
+			return "", fmt.Errorf("could not read directory `%s`: %v", tasksDir, err)
+		}
+
+		if len(dirEntries) > 0 {
+			return "", fmt.Errorf("directory `%s` is not empty", tasksDir)
+		}
+	} else if os.IsNotExist(err) {
+		if err := os.Mkdir(tasksDir, 0755); err != nil {
+			return "", fmt.Errorf("could not create directory `%s`: %v", tasksDir, err)
+		}
+	} else {
+		return "", fmt.Errorf("could not stat directory `%s`: %v", tasksDir, err)
+	}
+
+	index := TaskIndex{Entries: []TaskIndexEntry{}}
+	if err := index.SaveIndex(tasksDir); err != nil {
+		return "", fmt.Errorf("failed to save task index: %v", err)
+	}
+
+	return tasksDir, nil
 }
 
 func addTask(args []string, taskManager TaskManager) (string, error) {

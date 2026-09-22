@@ -32,7 +32,7 @@ func NewLfsTaskManager(tasksDir string) (*LfsTaskManager, error) {
 
 	index, err := LoadIndex(tasksDir)
 	if err != nil {
-		return nil, fmt.Errorf("could not load index: %v", err)
+		return nil, fmt.Errorf("could not load index: %v - forgot to initialize?", err)
 	}
 
 	if err := index.Validate(tasks); err != nil {
