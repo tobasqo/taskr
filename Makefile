@@ -8,7 +8,7 @@ help:
 	@printf "Available targets:\n"
 	@printf "  build  Build the application\n"
 	@printf "  run    Run the application\n"
-	@printg "  check  Check application for potential errors"
+	@printf "  check  Check application for potential errors"
 	@printf "  test   Run tests\n"
 	@printf "  fmt    Format Go source files\n"
 	@printf "  vet    Run go vet\n"
