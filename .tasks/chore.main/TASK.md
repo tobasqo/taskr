@@ -1,7 +1,7 @@
 ---
 id: chore.main
 status: todo
-related_tasks: []
+related_tasks: [web.server]
 tags: []
 ---
 
