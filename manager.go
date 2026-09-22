@@ -7,6 +7,7 @@ import (
 type TaskManager interface {
 	GetTaskById(taskId string) (Task, error)
 	AddTask(id, title string) (string, error)
+	RemoveTask(id string) (string, error)
 	Tasks() []Task
 }
 
@@ -36,7 +37,7 @@ func NewLfsTaskManager(tasksDir string) (*LfsTaskManager, error) {
 	}
 
 	if err := index.Validate(tasks); err != nil {
-		return nil, fmt.Errorf("error validating index: %v", err)
+		return nil, fmt.Errorf("invalid index: %v", err)
 	}
 
 	taskManager := &LfsTaskManager{
@@ -72,9 +73,39 @@ func (tm *LfsTaskManager) AddTask(id, title string) (string, error) {
 	tm.tasks[id] = *task
 
 	tm.index.AddTask(*task, tm.lfsTaskFileManager.GetTaskDir(id))
-	tm.index.Validate(tm.tasks)
+	if err := tm.index.Validate(tm.tasks); err != nil {
+		return "", fmt.Errorf("invalid index: %v", err)
+	}
 	// not optimal to save index every time we add a task
-	tm.index.SaveIndex(tm.lfsTaskFileManager.Location())
+	if err := tm.index.SaveIndex(tm.lfsTaskFileManager.Location()); err != nil {
+		return "", fmt.Errorf("failed to save index: %v", err)
+	}
+
+	return taskFilePath, nil
+}
+
+func (tm *LfsTaskManager) RemoveTask(id string) (string, error) {
+	task, exists := tm.tasks[id]
+	if !exists {
+		return "", fmt.Errorf("task with ID `%s` not found", id)
+	}
+
+	tm.index.RemoveTask(task)
+	// not optimal to save index every time we remove a task
+	if err := tm.index.SaveIndex(tm.lfsTaskFileManager.Location()); err != nil {
+		return "", fmt.Errorf("failed to save index: %v", err)
+	}
+
+	taskFilePath, err := tm.lfsTaskFileManager.Delete(task)
+	if err != nil {
+		return "", fmt.Errorf("failed to delete task: %v", err)
+	}
+
+	delete(tm.tasks, id)
+
+	if err := tm.index.Validate(tm.tasks); err != nil {
+		return "", fmt.Errorf("invalid index: %v", err)
+	}
 
 	return taskFilePath, nil
 }

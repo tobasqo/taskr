@@ -8,6 +8,7 @@ import (
 type TaskFileManager interface {
 	GetTaskDir(taskId string) string
 	Save(task Task) (string, error)
+	Delete(task Task) (string, error)
 	LoadTask(taskPath string) (*Task, error)
 	DiscoverTasks() ([]Task, error)
 	Location() string
@@ -41,6 +42,20 @@ func (tfm LfsTaskFileManager) Save(task Task) (string, error) {
 	}
 
 	return taskFilePath, nil
+}
+
+func (tfm LfsTaskFileManager) Delete(task Task) (string, error) {
+	taskDir := tfm.GetTaskDir(task.ID)
+
+	if _, err := os.Stat(taskDir); os.IsNotExist(err) {
+		return "", fmt.Errorf("task directory `%s` does not exist", taskDir)
+	}
+
+	if err := os.RemoveAll(taskDir); err != nil {
+		return "", fmt.Errorf("failed to delete task directory: %v", err)
+	}
+
+	return taskDir, nil
 }
 
 func (tfm LfsTaskFileManager) LoadTask(taskPath string) (*Task, error) {

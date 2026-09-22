@@ -1,6 +1,6 @@
 ---
 id: feat.remove-task
-status: todo
+status: done
 related_tasks: []
 tags: []
 ---

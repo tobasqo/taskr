@@ -57,6 +57,15 @@ func (idx *TaskIndex) AddTask(task Task, taskDir string) {
 	idx.Entries = append(idx.Entries, TaskIndexEntry{task.ID, taskDir})
 }
 
+func (idx *TaskIndex) RemoveTask(task Task) {
+	for i, entry := range idx.Entries {
+		if entry.TaskID == task.ID {
+			idx.Entries = append(idx.Entries[:i], idx.Entries[i+1:]...)
+			break
+		}
+	}
+}
+
 func (idx TaskIndex) SaveIndex(tasksDir string) error {
 	indexFilePath := getIndexFilePath(tasksDir)
 

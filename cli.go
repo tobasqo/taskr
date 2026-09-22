@@ -41,7 +41,7 @@ func (e *unexpectedPositionalArgsError) Error() string {
 
 func main() {
 	if err := run(); err != nil && !errors.Is(err, flag.ErrHelp) {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "Error:", err)
 
 		// this looks weird
 		if missingRequiredFlagErr, ok := errors.AsType[*missingRequiredFlagError](err); ok {
@@ -94,6 +94,13 @@ func run() error {
 				return err
 			}
 			fmt.Printf("Task added at: `%s`\n", taskFilePath)
+
+		case "remove":
+			taskFilePath, err := removeTask(args[1:], taskManager)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Task at `%s` removed\n", taskFilePath)
 
 		case "list":
 			if err := listTasks(args[1:], taskManager, *tasksDir); err != nil {
@@ -181,6 +188,26 @@ func addTask(args []string, taskManager TaskManager) (string, error) {
 	}
 
 	return taskManager.AddTask(*id, *title)
+}
+
+func removeTask(args []string, taskManager TaskManager) (string, error) {
+	flags := newFlagSet("remove")
+
+	id := flags.String("id", "", "task ID (required)")
+
+	if err := flags.Parse(args); err != nil {
+		return "", err
+	}
+
+	if flags.NArg() != 0 {
+		return "", &unexpectedPositionalArgsError{flags.Args(), flags}
+	}
+
+	if *id == "" {
+		return "", &missingRequiredFlagError{"id", flags}
+	}
+
+	return taskManager.RemoveTask(*id)
 }
 
 func listTasks(args []string, taskManager TaskManager, tasksDir string) error {
