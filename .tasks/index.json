@@ -48,6 +48,10 @@
 		{
 			"id": "refactor.remove-current_task",
 			"path": "./.tasks/refactor.remove-current_task"
+		},
+		{
+			"id": "feat.reorder-tasks",
+			"path": "./.tasks/feat.reorder-tasks"
 		}
 	]
 }
