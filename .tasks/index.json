@@ -56,6 +56,10 @@
 		{
 			"id": "feat.index-fullpath",
 			"path": "./.tasks/feat.index-fullpath"
+		},
+		{
+			"id": "feat.list-in-index-order",
+			"path": "./.tasks/feat.list-in-index-order"
 		}
 	]
 }
