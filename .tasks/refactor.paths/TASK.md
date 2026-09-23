@@ -1,6 +1,6 @@
 ---
 id: refactor.paths
-status: todo
+status: done
 related_tasks: []
 tags: []
 ---

@@ -5,11 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 )
-
-const defaultTasksDir = "./.tasks"
 
 var commands = []struct {
 	name        string
@@ -56,6 +55,13 @@ func main() {
 }
 
 func run() error {
+	curDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	defaultTasksDir := filepath.Join(curDir, ".tasks")
+
 	globalFlags := newRootFlagSet()
 	tasksDir := globalFlags.String("tasks-dir", defaultTasksDir, "directory containing task files")
 
@@ -140,7 +146,7 @@ func initTasksDirectory(args []string) (string, error) {
 		return "", fmt.Errorf("provided path `%s` is not a directory", *dstDir)
 	}
 
-	tasksDir := fmt.Sprintf("%s/.tasks", *dstDir)
+	tasksDir := filepath.Join(*dstDir, ".tasks")
 	if _, err := os.Stat(tasksDir); err == nil {
 		dirEntries, err := os.ReadDir(tasksDir)
 		if err != nil {

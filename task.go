@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"go.yaml.in/yaml/v4"
 )
@@ -57,6 +58,6 @@ func (t Task) String() string {
 }
 
 func PrintTask(task Task, tasksDir string) {
-	taskDir := fmt.Sprintf("%s/%s", tasksDir, task.ID)
+	taskDir := filepath.Join(tasksDir, task.ID)
 	fmt.Printf("# %s\npath: %s\n%s", task.Title, taskDir, task.taskFrontmatter.String())
 }

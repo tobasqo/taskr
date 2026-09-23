@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type TaskFileManager interface {
@@ -19,7 +20,7 @@ type LfsTaskFileManager struct {
 }
 
 func (tfm LfsTaskFileManager) GetTaskDir(taskID string) string {
-	return fmt.Sprintf("%s/%s", tfm.tasksDir, taskID)
+	return filepath.Join(tfm.tasksDir, taskID)
 }
 
 func (tfm LfsTaskFileManager) Save(task Task) (string, error) {
@@ -29,7 +30,7 @@ func (tfm LfsTaskFileManager) Save(task Task) (string, error) {
 		return "", err
 	}
 
-	taskFilePath := fmt.Sprintf("%s/TASK.md", taskDir)
+	taskFilePath := filepath.Join(taskDir, "TASK.md")
 
 	file, err := os.OpenFile(taskFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
@@ -89,7 +90,7 @@ func (tfm LfsTaskFileManager) DiscoverTasks() ([]Task, error) {
 	var tasks []Task
 	for _, entry := range dirEntries {
 		if entry.IsDir() {
-			taskPath := fmt.Sprintf("%s/%s/TASK.md", tfm.tasksDir, entry.Name())
+			taskPath := filepath.Join(tfm.tasksDir, entry.Name(), "TASK.md")
 
 			if _, err := os.Stat(taskPath); os.IsNotExist(err) {
 				// NOTE: should we print something? probably only if `verbose` or something

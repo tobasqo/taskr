@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 )
 
@@ -102,5 +103,5 @@ func (idx TaskIndex) Validate(tasks map[string]Task) error {
 }
 
 func getIndexFilePath(tasksDir string) string {
-	return fmt.Sprintf("%s/index.json", tasksDir)
+	return filepath.Join(tasksDir, "index.json")
 }
