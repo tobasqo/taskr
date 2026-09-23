@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -150,7 +151,7 @@ func initTasksDirectory(args []string) (string, error) {
 			return "", fmt.Errorf("directory `%s` is not empty", tasksDir)
 		}
 	} else if os.IsNotExist(err) {
-		if err := os.Mkdir(tasksDir, 0755); err != nil {
+		if err := os.Mkdir(tasksDir, 0o755); err != nil {
 			return "", fmt.Errorf("could not create directory `%s`: %v", tasksDir, err)
 		}
 	} else {
@@ -240,23 +241,13 @@ func listTasks(args []string, taskManager TaskManager, tasksDir string) error {
 
 	if *relatedTask != "" {
 		tasks = filterTasks(tasks, func(task Task) bool {
-			for _, taskRelatedTask := range task.RelatedTasks {
-				if taskRelatedTask == *relatedTask {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(task.RelatedTasks, *relatedTask)
 		})
 	}
 
 	if *tag != "" {
 		tasks = filterTasks(tasks, func(task Task) bool {
-			for _, taskTag := range task.Tags {
-				if taskTag == *tag {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(task.Tags, *tag)
 		})
 	}
 
@@ -303,7 +294,7 @@ func showTask(args []string, taskManager TaskManager, tasksDir string) error {
 		return &missingRequiredFlagError{"id", flags}
 	}
 
-	task, err := taskManager.GetTaskById(*id)
+	task, err := taskManager.GetTaskByID(*id)
 	if err != nil {
 		return err
 	}

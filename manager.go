@@ -5,7 +5,7 @@ import (
 )
 
 type TaskManager interface {
-	GetTaskById(taskId string) (Task, error)
+	GetTaskByID(taskID string) (Task, error)
 	AddTask(id, title string) (string, error)
 	RemoveTask(id string) (string, error)
 	Tasks() []Task
@@ -48,7 +48,7 @@ func NewLfsTaskManager(tasksDir string) (*LfsTaskManager, error) {
 	return taskManager, nil
 }
 
-func (tm LfsTaskManager) GetTaskById(taskID string) (Task, error) {
+func (tm LfsTaskManager) GetTaskByID(taskID string) (Task, error) {
 	// probably somehow return *Task if possible?
 	// or just add `UpdateTask` method when needed
 	task, exists := tm.tasks[taskID]
@@ -60,7 +60,7 @@ func (tm LfsTaskManager) GetTaskById(taskID string) (Task, error) {
 }
 
 func (tm *LfsTaskManager) AddTask(id, title string) (string, error) {
-	if !taskIdIsUnique(*tm, id) {
+	if !taskIDIsUnique(*tm, id) {
 		return "", fmt.Errorf("task `%s` already exists at `%s`", id, tm.lfsTaskFileManager.Location())
 	}
 
@@ -114,13 +114,13 @@ func (tm *LfsTaskManager) Tasks() []Task {
 	return SortTasksByIndex(tm.tasks, tm.index)
 }
 
-func taskIdIsUnique(tm LfsTaskManager, taskId string) bool {
-	return !taskExists(tm, taskId)
+func taskIDIsUnique(tm LfsTaskManager, taskID string) bool {
+	return !taskExists(tm, taskID)
 }
 
-func taskExists(tm LfsTaskManager, taskId string) bool {
+func taskExists(tm LfsTaskManager, taskID string) bool {
 	for i := range tm.tasks {
-		if tm.tasks[i].ID == taskId {
+		if tm.tasks[i].ID == taskID {
 			return true
 		}
 	}

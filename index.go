@@ -1,12 +1,11 @@
 package main
 
 import (
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"slices"
-
-	"encoding/json/jsontext"
-	"encoding/json/v2"
 )
 
 type TaskIndexEntry struct {
@@ -14,8 +13,8 @@ type TaskIndexEntry struct {
 	TaskPath string `json:"path"`
 }
 
-// TODO: define interface
 type TaskIndex struct {
+	// TODO: define interface
 	CurrentTaskID string           `json:"current_task"` // could be undefined
 	Entries       []TaskIndexEntry `json:"tasks"`
 }
@@ -69,7 +68,7 @@ func (idx *TaskIndex) RemoveTask(task Task) {
 func (idx TaskIndex) SaveIndex(tasksDir string) error {
 	indexFilePath := getIndexFilePath(tasksDir)
 
-	file, err := os.OpenFile(indexFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(indexFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to open index file: %v", err)
 	}

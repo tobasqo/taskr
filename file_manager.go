@@ -6,7 +6,7 @@ import (
 )
 
 type TaskFileManager interface {
-	GetTaskDir(taskId string) string
+	GetTaskDir(taskID string) string
 	Save(task Task) (string, error)
 	Delete(task Task) (string, error)
 	LoadTask(taskPath string) (*Task, error)
@@ -18,8 +18,8 @@ type LfsTaskFileManager struct {
 	tasksDir string
 }
 
-func (tfm LfsTaskFileManager) GetTaskDir(taskId string) string {
-	return fmt.Sprintf("%s/%s", tfm.tasksDir, taskId)
+func (tfm LfsTaskFileManager) GetTaskDir(taskID string) string {
+	return fmt.Sprintf("%s/%s", tfm.tasksDir, taskID)
 }
 
 func (tfm LfsTaskFileManager) Save(task Task) (string, error) {
@@ -31,7 +31,7 @@ func (tfm LfsTaskFileManager) Save(task Task) (string, error) {
 
 	taskFilePath := fmt.Sprintf("%s/TASK.md", taskDir)
 
-	file, err := os.OpenFile(taskFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(taskFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return "", fmt.Errorf("failed to create task file: %v", err)
 	}
