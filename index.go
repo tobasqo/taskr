@@ -16,8 +16,7 @@ type TaskIndexEntry struct {
 
 type TaskIndex struct {
 	// TODO: define interface
-	CurrentTaskID string           `json:"current_task"` // could be undefined
-	Entries       []TaskIndexEntry `json:"tasks"`
+	Entries []TaskIndexEntry `json:"tasks"`
 }
 
 func (idx TaskIndex) String() string {

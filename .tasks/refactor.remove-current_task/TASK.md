@@ -1,6 +1,6 @@
 ---
 id: refactor.remove-current_task
-status: todo
+status: done
 related_tasks: []
 tags: []
 ---
