@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 )
 
 type TaskManager interface {
@@ -18,8 +19,13 @@ type LfsTaskManager struct {
 }
 
 func NewLfsTaskManager(tasksDir string) (*LfsTaskManager, error) {
+	tasksDirFullpath, err := filepath.Abs(tasksDir)
+	if err != nil {
+		return nil, err
+	}
+
 	taskFileManager := LfsTaskFileManager{
-		tasksDir: tasksDir,
+		tasksDir: tasksDirFullpath,
 	}
 	discoveredTasks, err := taskFileManager.DiscoverTasks()
 	if err != nil {
@@ -31,7 +37,7 @@ func NewLfsTaskManager(tasksDir string) (*LfsTaskManager, error) {
 		tasks[discoveredTasks[i].ID] = discoveredTasks[i]
 	}
 
-	index, err := LoadIndex(tasksDir)
+	index, err := LoadIndex(tasksDirFullpath)
 	if err != nil {
 		return nil, fmt.Errorf("could not load index: %v - forgot to initialize?", err)
 	}

@@ -3,67 +3,67 @@
 	"tasks": [
 		{
 			"id": "chore.main",
-			"path": "./.tasks/chore.main"
+			"path": "/home/tobasqo/dev/taskr/.tasks/chore.main"
 		},
 		{
 			"id": "chore.makefile",
-			"path": "./.tasks/chore.makefile"
+			"path": "/home/tobasqo/dev/taskr/.tasks/chore.makefile"
 		},
 		{
 			"id": "chore.packages",
-			"path": "./.tasks/chore.packages"
+			"path": "/home/tobasqo/dev/taskr/.tasks/chore.packages"
 		},
 		{
 			"id": "chore.repo",
-			"path": "./.tasks/chore.repo"
+			"path": "/home/tobasqo/dev/taskr/.tasks/chore.repo"
 		},
 		{
 			"id": "feat.index",
-			"path": "./.tasks/feat.index"
+			"path": "/home/tobasqo/dev/taskr/.tasks/feat.index"
 		},
 		{
 			"id": "feat.init-cmd",
-			"path": "./.tasks/feat.init-cmd"
+			"path": "/home/tobasqo/dev/taskr/.tasks/feat.init-cmd"
 		},
 		{
 			"id": "refactor.paths",
-			"path": "./.tasks/refactor.paths"
+			"path": "/home/tobasqo/dev/taskr/.tasks/refactor.paths"
 		},
 		{
 			"id": "refactor.simplify-cli",
-			"path": "./.tasks/refactor.simplify-cli"
+			"path": "/home/tobasqo/dev/taskr/.tasks/refactor.simplify-cli"
 		},
 		{
 			"id": "term.newlines",
-			"path": "./.tasks/term.newlines"
+			"path": "/home/tobasqo/dev/taskr/.tasks/term.newlines"
 		},
 		{
 			"id": "web.server",
-			"path": "./.tasks/web.server"
+			"path": "/home/tobasqo/dev/taskr/.tasks/web.server"
 		},
 		{
 			"id": "feat.remove-task",
-			"path": "./.tasks/feat.remove-task"
+			"path": "/home/tobasqo/dev/taskr/.tasks/feat.remove-task"
 		},
 		{
 			"id": "refactor.remove-current_task",
-			"path": "./.tasks/refactor.remove-current_task"
+			"path": "/home/tobasqo/dev/taskr/.tasks/refactor.remove-current_task"
 		},
 		{
 			"id": "feat.reorder-tasks",
-			"path": "./.tasks/feat.reorder-tasks"
+			"path": "/home/tobasqo/dev/taskr/.tasks/feat.reorder-tasks"
 		},
 		{
 			"id": "feat.index-fullpath",
-			"path": "./.tasks/feat.index-fullpath"
+			"path": "/home/tobasqo/dev/taskr/.tasks/feat.index-fullpath"
 		},
 		{
 			"id": "feat.list-in-index-order",
-			"path": "./.tasks/feat.list-in-index-order"
+			"path": "/home/tobasqo/dev/taskr/.tasks/feat.list-in-index-order"
 		},
 		{
 			"id": "feat.validate-related-tasks",
-			"path": "./.tasks/feat.validate-related-tasks"
+			"path": "/home/tobasqo/dev/taskr/.tasks/feat.validate-related-tasks"
 		}
 	]
 }

@@ -1,6 +1,6 @@
 ---
 id: feat.index-fullpath
-status: todo
+status: done
 related_tasks: [refactor.paths]
 tags: []
 ---
